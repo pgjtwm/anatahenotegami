@@ -169,14 +169,29 @@ document.addEventListener('DOMContentLoaded', () => {
         let link1Text = "Amazonギフト券 (一番人気)";
         let link1Url = "https://www.amazon.co.jp/dp/B004N3APGO?tag=pgjtwm-22"; // User's Amazon ID set
         let link2Text = isBirthday ? "人気のバースデー体験ギフト" : (isThanks ? "癒やしのカタログギフト" : "失敗しない鉄板ギフト");
-        let link2Url = "https://hb.afl.rakuten.co.jp/hgc/YOUR_ID_HERE"; // Placeholder for Rakuten/ASP ID
+        let link2Url = "https://www.rakuten.co.jp/"; // TODO: Replace with your actual Rakuten Affiliate ID
+
+        const escapeHTML = (str) => {
+            return str.replace(/[&<>'"]/g,
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag]));
+        };
+
+        const safeTo = escapeHTML(data.t);
+        const safeFrom = escapeHTML(data.f);
+        const safeMessage = escapeHTML(data.m).replace(/\n/g, '<br>');
 
         const viewerHTML = `
             <div class="viewer-container theme-${data.th} fade-in">
                 <div class="letter-card">
-                    <div class="to">To: ${data.t}</div>
-                    <div class="content">${data.m.replace(/\n/g, '<br>')}</div>
-                    <div class="from">From: ${data.f}</div>
+                    <div class="to">To: ${safeTo}</div>
+                    <div class="content">${safeMessage}</div>
+                    <div class="from">From: ${safeFrom}</div>
                 </div>
                 <div class="viewer-footer" style="margin-top: 3rem; text-align: center;">
                     <a href="${window.location.origin}${window.location.pathname}" class="create-own" style="color: var(--primary); text-decoration: none; border: 1px solid var(--primary); padding: 0.8rem 1.5rem; border-radius: 50px;">あなたもメッセージを送ってみませんか？</a>
