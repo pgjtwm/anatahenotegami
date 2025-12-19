@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let giftTitle = "想い出に、ギフトを添えませんか？";
         let link1Text = "Amazonギフト券 (一番人気)";
-        let link1Url = "https://www.amazon.co.jp/dp/B004N3APGO?tag=YOUR_ID_HERE"; // Placeholder for Amazon ID
+        let link1Url = "https://www.amazon.co.jp/dp/B004N3APGO?tag=pgjtwm-22"; // User's Amazon ID set
         let link2Text = isBirthday ? "人気のバースデー体験ギフト" : (isThanks ? "癒やしのカタログギフト" : "失敗しない鉄板ギフト");
         let link2Url = "https://hb.afl.rakuten.co.jp/hgc/YOUR_ID_HERE"; // Placeholder for Rakuten/ASP ID
 
