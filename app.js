@@ -161,6 +161,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showLetter(data) {
+        // Logic for context-aware recommendations
+        const isBirthday = data.m.includes('誕生日') || data.m.includes('おめでとう');
+        const isThanks = data.m.includes('ありがとう') || data.m.includes('感謝');
+
+        let giftTitle = "想い出に、ギフトを添えませんか？";
+        let link1Text = "Amazonギフト券 (一番人気)";
+        let link1Url = "https://www.amazon.co.jp/dp/B004N3APGO?tag=YOUR_ID_HERE"; // Placeholder for Amazon ID
+        let link2Text = isBirthday ? "人気のバースデー体験ギフト" : (isThanks ? "癒やしのカタログギフト" : "失敗しない鉄板ギフト");
+        let link2Url = "https://hb.afl.rakuten.co.jp/hgc/YOUR_ID_HERE"; // Placeholder for Rakuten/ASP ID
+
         const viewerHTML = `
             <div class="viewer-container theme-${data.th} fade-in">
                 <div class="letter-card">
@@ -171,12 +181,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="viewer-footer" style="margin-top: 3rem; text-align: center;">
                     <a href="${window.location.origin}${window.location.pathname}" class="create-own" style="color: var(--primary); text-decoration: none; border: 1px solid var(--primary); padding: 0.8rem 1.5rem; border-radius: 50px;">あなたもメッセージを送ってみませんか？</a>
                     
-                    <div class="monetization-area" style="margin-top: 4rem; padding: 2rem; background: rgba(255,255,255,0.03); border-radius: 12px;">
-                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1rem;">Sponsored</p>
-                        <div style="display: flex; gap: 1rem; justify-content: center;">
-                            <a href="#" style="color: #fff; font-size: 0.9rem;">おすすめの誕生日ギフト</a>
-                            <a href="#" style="color: #fff; font-size: 0.9rem;">人気のフラワーギフト</a>
+                    <div class="monetization-area" style="margin-top: 4rem; padding: 2rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(192, 160, 128, 0.2);">
+                        <p style="font-size: 0.9rem; color: var(--primary); margin-bottom: 1.5rem; font-weight: bold;">${giftTitle}</p>
+                        <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+                            <a href="${link1Url}" target="_blank" style="color: #fff; font-size: 0.9rem; text-decoration: underline;">🎁 ${link1Text}</a>
+                            <a href="${link2Url}" target="_blank" style="color: #fff; font-size: 0.9rem; text-decoration: underline;">✨ ${link2Text}</a>
                         </div>
+                        <p style="font-size: 0.7rem; color: var(--text-dim); margin-top: 1.5rem;">※Amazonおよび楽天などのアフィリエイトリンクが含まれています</p>
                     </div>
                 </div>
             </div>
