@@ -24,26 +24,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h2>メッセージを作成</h2>
                 
                 <div class="input-group">
-                    <label>宛名</label>
+                    <label for="to-name">宛名</label>
                     <input type="text" id="to-name" placeholder="大切なあの方へ">
                 </div>
 
                 <div class="input-group">
-                    <label>本文</label>
+                    <label for="message-body">本文</label>
                     <textarea id="message-body" placeholder="心温まるメッセージを..."></textarea>
                 </div>
 
                 <div class="input-group">
                     <label>テーマ選択</label>
-                    <div class="theme-grid">
-                        <div class="theme-option active" data-theme="gold">Champagne Gold</div>
-                        <div class="theme-option" data-theme="midnight">Midnight Blue</div>
-                        <div class="theme-option" data-theme="rose">Rose Quartz</div>
+                    <div class="theme-grid" role="radiogroup" aria-label="テーマ選択">
+                        <div class="theme-option active" data-theme="gold" tabindex="0" role="radio" aria-checked="true" aria-label="Champagne Gold">Champagne Gold</div>
+                        <div class="theme-option" data-theme="midnight" tabindex="0" role="radio" aria-checked="false" aria-label="Midnight Blue">Midnight Blue</div>
+                        <div class="theme-option" data-theme="rose" tabindex="0" role="radio" aria-checked="false" aria-label="Rose Quartz">Rose Quartz</div>
                     </div>
                 </div>
 
                 <div class="input-group">
-                    <label>差出人</label>
+                    <label for="from-name">差出人</label>
                     <input type="text" id="from-name" placeholder="あなたの名前">
                 </div>
 
@@ -60,10 +60,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setupEditorEvents() {
         const themeOptions = document.querySelectorAll('.theme-option');
+        const updateTheme = (selectedOpt) => {
+            themeOptions.forEach(o => {
+                o.classList.remove('active');
+                o.setAttribute('aria-checked', 'false');
+            });
+            selectedOpt.classList.add('active');
+            selectedOpt.setAttribute('aria-checked', 'true');
+        };
+
         themeOptions.forEach(opt => {
-            opt.addEventListener('click', () => {
-                themeOptions.forEach(o => o.classList.remove('active'));
-                opt.classList.add('active');
+            opt.addEventListener('click', () => updateTheme(opt));
+            opt.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    updateTheme(opt);
+                }
             });
         });
 
@@ -91,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h3>カードが完成しました！</h3>
                     <p>このリンクを大切な人に送ってください。</p>
                     <div class="url-box">${url}</div>
-                    <button class="cta-button" onclick="navigator.clipboard.writeText('${url}'); alert('コピーしました')">リンクをコピー</button>
+                    <button class="cta-button" id="copy-btn">リンクをコピー</button>
                     
                     <div class="affiliate-box">
                         <p>💡 おすすめのギフトを添えませんか？</p>
@@ -103,6 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        document.getElementById('copy-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(url);
+            showToast('コピーしました');
+        });
     }
 
     // Check if viewing a card
@@ -125,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderViewer(data);
             } catch (e) {
                 console.error('Invalid card data', e);
-                alert('カードデータの読み込みに失敗しました。リンクが途切れている可能性があります。');
+                showToast('読み込みに失敗しました');
                 window.location.hash = '';
             }
         }
@@ -141,22 +158,31 @@ document.addEventListener('DOMContentLoaded', () => {
         // Render envelope initially
         document.body.innerHTML = `
             <div class="viewer-container theme-${data.th} fade-in">
-                <div class="envelope-wrapper" id="envelope">
+                <div class="envelope-wrapper" id="envelope" tabindex="0" role="button" aria-label="手紙を開封する">
                     <div class="seal">Aura</div>
                     <div class="paper-preview"></div>
                 </div>
-                <p id="click-hint" style="margin-top: 2rem; color: var(--text-dim); font-size: 0.9rem;">クリックして開封する</p>
+                <p id="click-hint" style="margin-top: 2rem; color: var(--text-dim); font-size: 0.9rem;">クリック、またはEnterキーで開封</p>
             </div>
         `;
 
         const envelope = document.getElementById('envelope');
-        envelope.addEventListener('click', () => {
+        const openEnvelope = () => {
+            if (envelope.classList.contains('open')) return;
             envelope.classList.add('open');
             document.getElementById('click-hint').style.opacity = '0';
 
             setTimeout(() => {
                 showLetter(data);
             }, 1000);
+        };
+
+        envelope.addEventListener('click', openEnvelope);
+        envelope.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openEnvelope();
+            }
         });
     }
 
@@ -169,14 +195,29 @@ document.addEventListener('DOMContentLoaded', () => {
         let link1Text = "Amazonギフト券 (一番人気)";
         let link1Url = "https://www.amazon.co.jp/dp/B004N3APGO?tag=pgjtwm-22"; // User's Amazon ID set
         let link2Text = isBirthday ? "人気のバースデー体験ギフト" : (isThanks ? "癒やしのカタログギフト" : "失敗しない鉄板ギフト");
-        let link2Url = "https://hb.afl.rakuten.co.jp/hgc/YOUR_ID_HERE"; // Placeholder for Rakuten/ASP ID
+        let link2Url = "https://www.rakuten.co.jp/"; // TODO: Replace with your actual Rakuten Affiliate ID
+
+        const escapeHTML = (str) => {
+            return str.replace(/[&<>'"]/g,
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag]));
+        };
+
+        const safeTo = escapeHTML(data.t);
+        const safeFrom = escapeHTML(data.f);
+        const safeMessage = escapeHTML(data.m).replace(/\n/g, '<br>');
 
         const viewerHTML = `
             <div class="viewer-container theme-${data.th} fade-in">
                 <div class="letter-card">
-                    <div class="to">To: ${data.t}</div>
-                    <div class="content">${data.m.replace(/\n/g, '<br>')}</div>
-                    <div class="from">From: ${data.f}</div>
+                    <div class="to">To: ${safeTo}</div>
+                    <div class="content">${safeMessage}</div>
+                    <div class="from">From: ${safeFrom}</div>
                 </div>
                 <div class="viewer-footer" style="margin-top: 3rem; text-align: center;">
                     <a href="${window.location.origin}${window.location.pathname}" class="create-own" style="color: var(--primary); text-decoration: none; border: 1px solid var(--primary); padding: 0.8rem 1.5rem; border-radius: 50px;">あなたもメッセージを送ってみませんか？</a>
@@ -194,5 +235,23 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         document.body.innerHTML = viewerHTML;
         document.body.style.background = 'radial-gradient(circle at center, #1a1a1c 0%, #000 100%)';
+    }
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        // Trigger reflow
+        void toast.offsetWidth;
+
+        toast.classList.add('show');
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toast.remove();
+            }, 400);
+        }, 3000);
     }
 });
